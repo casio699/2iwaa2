@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: 2iwa2_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: 2iwa2
+      POSTGRES_PASSWORD: 2iwa2_dev_password
+      POSTGRES_DB: 2iwa2
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

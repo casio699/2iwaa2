@@ -1,0 +1,11 @@
+{
+  "/api/alerts/route": "app/api/alerts/route.js",
+  "/api/reports/route": "app/api/reports/route.js",
+  "/api/shelters/route": "app/api/shelters/route.js",
+  "/api/admin/alerts/route": "app/api/admin/alerts/route.js",
+  "/alerts/page": "app/alerts/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/reports/page": "app/reports/page.js",
+  "/page": "app/page.js",
+  "/shelters/page": "app/shelters/page.js"
+}
