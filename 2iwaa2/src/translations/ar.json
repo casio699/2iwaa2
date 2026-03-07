@@ -1,0 +1,38 @@
+{
+  "General": {
+    "title": "2iwa2 - منصة إيواء",
+    "welcome": "أهلاً بكم في منصة إيواء",
+    "description": "منصة لدعم النازحين وتوفير الملاجئ والخدمات في لبنان",
+    "search": "بحث...",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما، يرجى المحاولة لاحقاً"
+  },
+  "Features": {
+    "shelters": "الملاجئ",
+    "housing": "السكن",
+    "hotels": "الفنادق",
+    "help": "مساعدات",
+    "alerts": "تنبيهات",
+    "news": "الأخبار",
+    "finance": "مالية",
+    "hospitals": "المستشفيات"
+  },
+  "Shelters": {
+    "capacity": "السعة",
+    "status": "الحالة",
+    "location": "الموقع",
+    "full": "ممتلئ",
+    "available": "متوفر"
+  },
+  "Alerts": {
+    "warning": "تحذير",
+    "danger": "خطر",
+    "threat": "تهديد أمني",
+    "report_threat": "تبليغ عن تهديد"
+  },
+  "Finance": {
+    "usd_rate": "سعر الصرف",
+    "fuel_price": "سعر المحروقات",
+    "gold_price": "سعر الذهب"
+  }
+}

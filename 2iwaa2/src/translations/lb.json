@@ -1,0 +1,38 @@
+{
+  "General": {
+    "title": "2iwa2 - منصة إيواء",
+    "welcome": "أهلاً فيكن بمنصة إيواء",
+    "description": "منصة كرمال نساعد الناس ونلاقي مطرح للكل بلبنان",
+    "search": "نقي مطرح...",
+    "loading": "عم يحمل...",
+    "error": "صار شي غلط، جرب بعد شوي"
+  },
+  "Features": {
+    "shelters": "الملاجئ",
+    "housing": "بيوت",
+    "hotels": "أوتيلات",
+    "help": "مساعدات",
+    "alerts": "تنبيهات",
+    "news": "الأخبار",
+    "finance": "أخبار المصاري",
+    "hospitals": "المستشفيات"
+  },
+  "Shelters": {
+    "capacity": "قديش بيساع",
+    "status": "الوضع",
+    "location": "وين",
+    "full": "مفول",
+    "available": "في محل"
+  },
+  "Alerts": {
+    "warning": "انتبه",
+    "danger": "خطر",
+    "threat": "في شي عم بيصير",
+    "report_threat": "خبرنا إذا في شي"
+  },
+  "Finance": {
+    "usd_rate": "صرف الدولار",
+    "fuel_price": "سعر البنزين",
+    "gold_price": "سعر الذهب"
+  }
+}
