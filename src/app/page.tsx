@@ -5,35 +5,91 @@ import { Badge } from "@/components/ui/Badge";
 const features = [
   {
     href: "/shelters",
-    title: "مراكز الإيواء",
-    description: "ابحث عن مراكز إيواء رسمية ومدارس ومساكن متاحة",
+    title: "مراكز الإيواء الرسمية",
+    description: "ابحث عن مراكز إيواء رسمية من الحكومة والبلديات مع معلومات السعة المحدثة",
     badge: "متاح",
     badgeVariant: "success" as const,
+    icon: "🏛️",
+  },
+  {
+    href: "/housing",
+    title: "سكن خاص وإيواء",
+    description: "منازل، شقق، وفنادق متاحة للإيواء المؤقت - مجانية أو للإيجار",
+    badge: "جديد",
+    badgeVariant: "info" as const,
     icon: "🏠",
+  },
+  {
+    href: "/hotlines",
+    title: "أرقام الطوارئ",
+    description: "جميع أرقام الطوارئ والخطوط الساخنة: الدفاع المدني، الصليب الأحمر، والطوارئ الموحدة",
+    badge: "24/7",
+    badgeVariant: "danger" as const,
+    icon: "🚨",
+  },
+  {
+    href: "/flights",
+    title: "معلومات الطيران",
+    description: "معلومات مباشرة عن رحلات مطار بيروت - رفيق الحريري الدولي",
+    badge: "مباشر",
+    badgeVariant: "info" as const,
+    icon: "✈️",
+  },
+  {
+    href: "/threats",
+    title: "قاعدة بيانات التهديدات",
+    description: "تتبع التهديدات والحوادث الأمنية مع الخريطة التفاعلية والتحقق من المصادر",
+    badge: "مباشر",
+    badgeVariant: "warning" as const,
+    icon: "⚠️",
   },
   {
     href: "/alerts",
     title: "تنبيهات الخطر",
-    description: "تابع آخر التنبيهات والتحذيرات في منطقتك",
-    badge: "جديد",
-    badgeVariant: "info" as const,
-    icon: "⚠️",
+    description: "نظام تنبيه فوري مشابه لتطبيق Red Alert - إشعارات فورية للتهديدات",
+    badge: "فوري",
+    badgeVariant: "danger" as const,
+    icon: "🔔",
   },
   {
-    href: "/reports",
-    title: "بلاغات مباشرة",
-    description: "أرسل بلاغاً أو شاهد البلاغات الموثقة من المستخدمين",
-    badge: "نشط",
-    badgeVariant: "warning" as const,
-    icon: "📢",
+    href: "/news",
+    title: "أخبار المنصة - منسّا",
+    description: "جمع الأخبار من مصادر متعددة (Ground News style) - مقارنة التغطية والمصادر",
+    badge: "متعدد",
+    badgeVariant: "info" as const,
+    icon: "📰",
+  },
+  {
+    href: "/help",
+    title: "التبرعات والمساعدات",
+    description: "ساعد الآخرين أو اطلب المساعدة - تبرع بالوقت، المال، السكن، أو الموارد",
+    badge: "مجتمع",
+    badgeVariant: "success" as const,
+    icon: "🤝",
   },
   {
     href: "/hospitals",
     title: "خدمات صحية",
-    description: "مستشفيات، عيادات، وصيدليات قريبة منك",
+    description: "مستشفيات، عيادات، وصيدليات قريبة منك من خريطة OpenStreetMap",
     badge: "محدث",
     badgeVariant: "success" as const,
     icon: "🏥",
+  },
+  {
+    href: "/financial",
+    title: "المعلومات المالية",
+    description: "أسعار صرف الليرة (رسمي/سوق سوداء/صيرفة)، أسعار المحروقات، والذهب",
+    badge: "لحظي",
+    badgeVariant: "info" as const,
+    icon: "💱",
+  },
+  {
+    href: "/reports",
+    title: "البلاغات المباشرة",
+    description: "أرسل بلاغاً عن تهديد، إيواء، أو أي معلومات مفيدة للمجتمع",
+    badge: "نشط",
+    badgeVariant: "warning" as const,
+    icon: "📢",
   },
 ];
 
@@ -72,7 +128,7 @@ export default function HomePage() {
 
       {/* Features Grid */}
       <div className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {features.map((feature) => (
             <Link key={feature.href} href={feature.href} className="group">
               <Card className="h-full border-0 shadow-md transition-all group-hover:-translate-y-1 group-hover:shadow-xl">

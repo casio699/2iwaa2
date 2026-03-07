@@ -100,6 +100,8 @@ model Report {
 
   shelterId     String?
   shelter       Shelter?     @relation(fields: [shelterId], references: [id], onDelete: SetNull)
+  housingId     String?
+  housing       Housing?     @relation(fields: [housingId], references: [id], onDelete: SetNull)
 
   reviewStatus  ReviewStatus @default(pending)
   reviewedAt    DateTime?
@@ -130,6 +132,9 @@ model Alert {
   reviewStatus  ReviewStatus  @default(pending)
   publishedAt   DateTime?
   publishedBy   String?
+
+  threatId      String?
+  threat        Threat?       @relation(fields: [threatId], references: [id], onDelete: SetNull)
 }
 
 model AreaSubscription {
@@ -177,4 +182,290 @@ model Hotline {
   sourceUrl   String?
   isActive    Boolean  @default(true)
   displayOrder Int     @default(0)
+}
+
+// Housing/Private Shelter exchange (Airbnb-style)
+model Housing {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  type        String   // free | rent | hotel
+  price       Float?   // null if free
+  currency    String?  // USD | LBP
+  capacity    Int      // Number of people
+  
+  // Amenities as JSON array ["electricity", "water", "hot_water", "internet", "heating"]
+  amenities   String[]
+  photos      String[]
+  
+  // Host info
+  hostName    String
+  hostPhone   String
+  hostWhatsApp String?
+  hostType    String   // civilian | ngo | municipality | hotel
+  
+  // Location
+  latitude    Float
+  longitude   Float
+  addressAr   String?
+  governorateAr String?
+  districtAr  String?
+  
+  // Availability
+  availableFrom DateTime
+  availableTo   DateTime?
+  
+  // Status
+  isAvailable Boolean  @default(true)
+  verified    Boolean  @default(false)
+  featured    Boolean  @default(false)
+  
+  // Relations
+  reports     Report[]
+  reviews     Review[]
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  housingId   String
+  housing     Housing  @relation(fields: [housingId], references: [id], onDelete: Cascade)
+  
+  rating      Int      // 1-5
+  commentAr   String?
+  guestName   String?
+  verified    Boolean  @default(false) // Was the guest actually hosted
+}
+
+// News Articles (Minassa News)
+model NewsArticle {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  titleAr     String
+  titleEn     String?
+  summaryAr   String?
+  content     String?
+  
+  // Source info
+  sourceName  String   // Naharnet, LBCI, etc.
+  sourceUrl   String
+  originalUrl String
+  sourceType  String   // official | mainstream | social | international
+  
+  // Categorization
+  category    String   // threat | shelter | humanitarian | general
+  tags        String[]
+  
+  // Media
+  imageUrl    String?
+  videoUrl    String?
+  
+  // Coverage analysis (Ground News style)
+  coverage    String[] // ["LBCI", "MTV", "Daily Star"] - who covered this
+  coverageBias Json?   // {left: ["source"], center: ["source"], right: ["source"]}
+  
+  // Metadata
+  publishedAt DateTime
+  isBreaking  Boolean  @default(false)
+  isVerified  Boolean  @default(false)
+  viewCount   Int      @default(0)
+  
+  // User submissions
+  submittedBy String?  // User ID if crowdsourced
+  moderatedBy String?  // Admin who approved
+  moderatedAt DateTime?
+}
+
+// Threat Database
+model Threat {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  type        String   // rocket | airstrike | shelling | border_clash | drone | naval | ground
+  subtype     String?  // specific munition type if known
+  
+  // Location
+  latitude    Float
+  longitude   Float
+  areaNameAr  String   // "الضاحية الجنوبية"
+  areaNameLb  String?
+  governorate String?
+  
+  // Time
+  reportedAt  DateTime @default(now())
+  occurredAt  DateTime? // When it actually happened
+  
+  // Details
+  descriptionAr String
+  descriptionEn String?
+  casualties    Int?    // Reported casualties
+  damageLevel   String? // minor | moderate | severe | unknown
+  
+  // Source
+  source      String   // user | admin | idf_statement | news | intelligence
+  sourceUrl   String?
+  evidenceUrls String[] // Photos/videos
+  
+  // Verification workflow
+  status      String   @default("pending") // pending | verified | false_alarm | investigating
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  verificationNotes String?
+  
+  // Impact assessment
+  sheltersAffected String[] // IDs of nearby shelters
+  hospitalsActivated Boolean @default(false)
+  
+  // Relations
+  alerts      Alert[]
+}
+
+// Help Offers and Requests
+model HelpPost {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  type        String   // offer | request
+  category    String   // shelter | money | food | clothing | medical | utilities | transport | volunteer | other
+  
+  titleAr     String
+  descriptionAr String
+  
+  // Contact
+  contactName  String?
+  contactPhone String
+  contactWhatsApp String?
+  
+  // Location
+  location    String?  // General area
+  latitude    Float?
+  longitude   Float?
+  
+  // For shelter offers
+  housingId   String?
+  
+  // Status
+  status      String   @default("active") // active | fulfilled | closed | expired
+  urgency     String   @default("normal") // low | normal | high | urgent
+  
+  // Matching
+  matchedWith String?  // ID of matching offer/request
+  matchedAt   DateTime?
+  
+  // Admin
+  verified    Boolean  @default(false)
+  moderatedBy String?
+  moderatedAt DateTime?
+}
+
+// Financial Data
+model FinancialRate {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  type        String   // lira_official | lira_black | lira_sayrafa | fuel_95 | fuel_98 | fuel_diesel | gold_24k | gold_21k | usd | eur
+  value       Float
+  currency    String   // LBP | USD | EUR
+  
+  // Source
+  sourceName  String   // BDL | LiraRate | Sayrafa | Ministry
+  sourceUrl   String?
+  
+  // For trend analysis
+  previousValue Float?
+  changePercent Float?
+  
+  // Metadata
+  region      String   @default("Lebanon")
+  notes       String?
+}
+
+// User Subscriptions for Alerts (enhanced)
+model UserAlertSubscription {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // User identification (can be anonymous)
+  userId      String?  // Optional registration
+  fingerprint String   // Device fingerprint for anonymous users
+  
+  // Areas to monitor
+  areas       String[] // ["Beirut", "Saida", "Tripoli"]
+  
+  // Alert preferences
+  alertTypes  String[] @default(["urgent", "warning"]) // urgent | warning | info
+  categories  String[] @default(["all"]) // threat | shelter | news | financial
+  
+  // Notification channels
+  pushEnabled Boolean  @default(true)
+  pushSubscription Json? // Web Push subscription object
+  
+  smsEnabled  Boolean  @default(false)
+  phoneNumber String?
+  
+  whatsappEnabled Boolean @default(false)
+  whatsappNumber  String?
+  
+  emailEnabled Boolean  @default(false)
+  email       String?
+  
+  // Status
+  isActive    Boolean  @default(true)
+  lastNotifiedAt DateTime?
+  notificationCount Int @default(0)
+}
+
+// SMS/WhatsApp Queue
+model NotificationQueue {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  type        String   // sms | whatsapp | email
+  recipient   String   // Phone number or email
+  messageAr   String
+  messageEn   String?
+  
+  status      String   @default("pending") // pending | sent | failed
+  sentAt      DateTime?
+  error       String?
+  
+  // Reference
+  alertId     String?
+  threatId    String?
+}
+
+// Cache for offline support
+model OfflineCache {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  cacheKey    String   @unique
+  data        String   // JSON string
+  dataType    String   // shelters | hotlines | threats | news
+  expiresAt   DateTime
+}
+
+// Analytics
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  eventType   String   // shelter_search | alert_viewed | threat_reported | news_clicked | housing_contact
+  userId      String?
+  fingerprint String?
+  
+  // Event data
+  data        Json?
+  
+  // Location context
+  ipAddress   String?
+  userAgent   String?
 }

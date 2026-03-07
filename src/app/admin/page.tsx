@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { AdminStats } from "@/components/AdminStats";
+import { DataExport } from "@/components/DataExport";
 
 function isReportStatus(v: string): v is "pending" | "verified" | "rejected" | "archived" {
   return v === "pending" || v === "verified" || v === "rejected" || v === "archived";
@@ -221,6 +222,10 @@ export default function AdminPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Sidebar - Auth & Quick Actions */}
           <div className="space-y-6">
+            <AdminStats />
+            
+            <DataExport />
+
             <Card>
               <CardHeader>
                 <CardTitle>تسجيل الدخول</CardTitle>

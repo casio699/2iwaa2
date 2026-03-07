@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { QuickActions } from "@/components/QuickActions";
 
 export const metadata: Metadata = {
   title: "2iwa2 - منصة إيواء",
@@ -17,6 +19,8 @@ export default function RootLayout({
       <body className="min-h-screen bg-zinc-50">
         <Navbar />
         <main>{children}</main>
+        <OfflineIndicator />
+        <QuickActions />
       </body>
     </html>
   );

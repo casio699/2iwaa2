@@ -1,45 +1,74 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { useEffect, useState, useCallback } from "react";
+import { io, Socket } from "socket.io-client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
-type AlertItem = {
+type Alert = {
   id: string;
   titleAr: string;
   bodyAr: string;
   severity: "urgent" | "warning" | "info";
-  publishedAt?: string | null;
-  createdAt: string;
+  publishedAt?: string;
+  createdAt?: string;
 };
 
-const severityConfig: Record<AlertItem["severity"], { label: string; variant: "default" | "success" | "warning" | "danger" | "info"; icon: string }> = {
+const severityConfig: Record<Alert["severity"], { label: string; variant: "default" | "success" | "warning" | "danger" | "info"; icon: string }> = {
   urgent: { label: "عاجل", variant: "danger", icon: "🚨" },
   warning: { label: "تحذير", variant: "warning", icon: "⚠️" },
   info: { label: "معلومة", variant: "info", icon: "ℹ️" },
 };
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(false);
+  const [connected, setConnected] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/alerts");
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Failed");
       setAlerts(json.alerts ?? []);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    load().catch(() => {
-      // ignore
+    load();
+  }, [load]);
+
+  // WebSocket connection
+  useEffect(() => {
+    const socketInstance = io("/api/socket", {
+      path: "/api/socket",
+      transports: ["websocket", "polling"],
     });
+
+    socketInstance.on("connect", () => {
+      setConnected(true);
+      const areas = ["بيروت", "جبل لبنان", "الشمال", "البقاع", "الجنوب"];
+      areas.forEach((area) => socketInstance.emit("subscribe-area", area));
+    });
+
+    socketInstance.on("disconnect", () => setConnected(false));
+
+    socketInstance.on("urgent-alert", (alert: Alert) => {
+      setAlerts((prev) => [alert, ...prev]);
+    });
+
+    socketInstance.on("warning-alert", (alert: Alert) => {
+      setAlerts((prev) => [alert, ...prev]);
+    });
+
+    socketInstance.on("info-alert", (alert: Alert) => {
+      setAlerts((prev) => [alert, ...prev]);
+    });
+
+    return () => { socketInstance.disconnect(); };
   }, []);
 
   return (
@@ -51,13 +80,19 @@ export default function AlertsPage() {
             <h1 className="text-3xl font-bold text-zinc-900">تنبيهات الخطر</h1>
             <p className="mt-2 text-zinc-600">آخر التنبيهات والتحذيرات المنشورة.</p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => load().catch((e) => alert(String(e)))}
-            disabled={loading}
-          >
-            {loading ? "جارٍ التحديث..." : "تحديث"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-2 rounded-full px-3 py-1 text-sm ${connected ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+              <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500" : "bg-amber-500"}`} />
+              {connected ? "متصل" : "غير متصل"}
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => load()}
+              disabled={loading}
+            >
+              {loading ? "جارٍ التحديث..." : "تحديث"}
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -94,18 +129,19 @@ export default function AlertsPage() {
             alerts.map((a) => {
               const config = severityConfig[a.severity];
               return (
-                <Card key={a.id} className="overflow-hidden">
+                <Card key={a.id} className={`overflow-hidden ${a.severity === "urgent" ? "border-red-500 border-l-4" : ""}`}>
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{config.icon}</span>
-                          <Badge variant={config.variant}>{config.label}</Badge>
-                        </div>
-                        <h3 className="mt-2 text-lg font-semibold text-zinc-900">{a.titleAr}</h3>
-                        <p className="mt-2 text-zinc-700 leading-relaxed">{a.bodyAr}</p>
-                      </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{config.icon}</span>
+                      <Badge variant={config.variant}>{config.label}</Badge>
+                      {a.publishedAt && (
+                        <span className="text-xs text-zinc-500 mr-auto">
+                          {new Date(a.publishedAt).toLocaleString("ar-LB")}
+                        </span>
+                      )}
                     </div>
+                    <CardTitle className="text-lg">{a.titleAr}</CardTitle>
+                    <CardDescription className="mt-1 leading-relaxed">{a.bodyAr}</CardDescription>
                   </CardHeader>
                 </Card>
               );
