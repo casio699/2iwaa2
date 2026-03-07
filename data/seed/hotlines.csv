@@ -1,0 +1,12 @@
+name_ar,phone,region,category,notes,source_url
+"الطوارئ الموحدة (الدفاع المدني - الأمن الداخلي - الصليب الأحمر)","112",Lebanon,"emergency","الرقم الموحّد للطوارئ في لبنان","https://www.civildefense.gov.lb/"
+"الصليب الأحمر اللبناني (إسعاف)","140",Lebanon,"medical","سيارات إسعاف الصليب الأحمر","https://www.redcross.org.lb/"
+"الدفاع المدني (طوارئ)","125",Lebanon,"emergency","الدفاع المدني اللبناني - طوارئ","https://www.civildefense.gov.lb/"
+"وزارة الصحة العامة (خط ساخن)","1214",Lebanon,"health","وزارة الصحة العامة في لبنان","http://www.moph.gov.lb/"
+"أمن الدولة","117",Lebanon,"police","أمن الدولة اللبنانية","https://www.general-security.gov.lb/"
+"الجمارك","1735",Lebanon,"customs","المديرية العامة للجمارك","https://www.customs.gov.lb/"
+"خفر السواحل","154",Lebanon,"marine","القوى البحرية اللبنانية","https://www.lebarmy.gov.lb/"
+"الجيش اللبناني","1701",Lebanon,"military","الاتصال بالجيش اللبناني","https://www.lebarmy.gov.lb/"
+"المطار (معلومات)","150",Lebanon,"transport","مطار رفيق الحريري الدولي","https://www.beirutairport.gov.lb/"
+"هيئة إدارة السير","157",Lebanon,"traffic","هيئة إدارة السير والآليات والمركبات","http://www.dawlati.gov.lb/"
+"معلومات الزوار (السياحة)","1739",Lebanon,"tourism","وزارة السياحة - معلومات الزوار","http://www.mot.gov.lb/"

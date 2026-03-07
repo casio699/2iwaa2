@@ -1,191 +1,513 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  AlertTriangle, 
-  Check, 
-  X, 
-  Eye, 
-  Clock, 
-  Users,
-  Database,
-  RefreshCw,
-  ShieldCheck as ShieldCheckIcon,
-  ArrowLeft as ArrowLeftIcon
-} from "lucide-react";
-import Skeleton from "@/components/Skeleton";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
-interface Report {
-  id: string;
-  type: 'threat' | 'housing' | 'news';
-  user: string;
-  content: string;
-  location: string;
-  time: string;
-  status: 'pending' | 'verified' | 'rejected';
+function isReportStatus(v: string): v is "pending" | "verified" | "rejected" | "archived" {
+  return v === "pending" || v === "verified" || v === "rejected" || v === "archived";
 }
 
-const mockReports: Report[] = [
-  { id: "1", type: 'threat', user: "مستخدم ٨٨", content: "سماع دوي انفجار قوي بالقرب من المطار", location: "طريق المطار", time: "قبل ٥ دقائق", status: 'pending' },
-  { id: "2", type: 'housing', user: "علي خ.", content: "تأمين غرفة لعائلة نازحة في طرابلس", location: "طرابلس", time: "منذ ساعة", status: 'pending' },
-  { id: "3", type: 'threat', user: "سارة م.", content: "تحليق مكثف للطيران المسير", location: "صور", time: "منذ ١٠ دقائق", status: 'pending' },
-];
+function isShelterType(
+  v: string
+): v is "government" | "ngo" | "municipality" | "civilian" | "hotel" {
+  return (
+    v === "government" || v === "ngo" || v === "municipality" || v === "civilian" || v === "hotel"
+  );
+}
 
-export default function AdminDashboard() {
-  const [reports, setReports] = useState(mockReports);
-  const [useLebanese, setUseLebanese] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+function isAlertSeverity(v: string): v is "urgent" | "warning" | "info" {
+  return v === "urgent" || v === "warning" || v === "info";
+}
+
+type Report = {
+  id: string;
+  type: string;
+  titleAr: string;
+  descriptionAr?: string | null;
+  reviewStatus: string;
+  createdAt: string;
+};
+
+type AlertItem = {
+  id: string;
+  titleAr: string;
+  bodyAr: string;
+  severity: string;
+  reviewStatus: string;
+  createdAt: string;
+  publishedAt?: string | null;
+};
+
+export default function AdminPage() {
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"pending" | "verified" | "rejected" | "archived">(
+    "pending"
+  );
+  const [reports, setReports] = useState<Report[]>([]);
+  const authHeader = useMemo(() => ({ Authorization: `Bearer ${password}` }), [password]);
+
+  const [shelterType, setShelterType] = useState<
+    "government" | "ngo" | "municipality" | "civilian" | "hotel"
+  >("government");
+  const [shelterNameAr, setShelterNameAr] = useState("");
+  const [shelterLat, setShelterLat] = useState("");
+  const [shelterLng, setShelterLng] = useState("");
+  const [shelterCapacityTotal, setShelterCapacityTotal] = useState("");
+  const [shelterCapacityUsed, setShelterCapacityUsed] = useState("");
+  const [shelterStatusTextAr, setShelterStatusTextAr] = useState("");
+  const [shelterSourceUrl, setShelterSourceUrl] = useState("");
+  const [shelterCreateMsg, setShelterCreateMsg] = useState<string | null>(null);
+
+  const [alertTitleAr, setAlertTitleAr] = useState("");
+  const [alertBodyAr, setAlertBodyAr] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState<"urgent" | "warning" | "info">("warning");
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alertsMsg, setAlertsMsg] = useState<string | null>(null);
+
+  async function loadReports() {
+    const res = await fetch(`/api/admin/reports?status=${status}`, {
+      headers: authHeader,
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? "Failed");
+    setReports(json.reports);
+  }
+
+  async function verify(id: string) {
+    const res = await fetch(`/api/admin/reports/${id}/verify`, {
+      method: "POST",
+      headers: authHeader,
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json?.error ?? "Failed");
+    }
+    await loadReports();
+  }
+
+  const loadAlerts = useCallback(async () => {
+    const res = await fetch("/api/admin/alerts?status=pending", {
+      headers: authHeader,
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? "Failed");
+    setAlerts(json.alerts ?? []);
+  }, [authHeader]);
+
+  async function createAlert() {
+    setAlertsMsg(null);
+
+    const res = await fetch("/api/alerts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        titleAr: alertTitleAr,
+        bodyAr: alertBodyAr,
+        severity: alertSeverity,
+      }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setAlertsMsg(`خطأ: ${json?.error ?? "فشل إنشاء التنبيه"}`);
+      return;
+    }
+
+    setAlertTitleAr("");
+    setAlertBodyAr("");
+    if (password) setAlertsMsg("تم إنشاء التنبيه. (قيد المراجعة/النشر)");
+
+    await loadAlerts();
+  }
+
+  async function publishAlert(id: string) {
+    setAlertsMsg(null);
+    const res = await fetch(`/api/admin/alerts/${id}/publish`, {
+      method: "POST",
+      headers: authHeader,
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setAlertsMsg(`خطأ: ${json?.error ?? "فشل نشر التنبيه"}`);
+      return;
+    }
+
+    if (json?.telegram?.skipped) {
+      setAlertsMsg("تم نشر التنبيه. (Telegram غير مُعدّ بعد)");
+    } else {
+      setAlertsMsg("تم نشر التنبيه");
+    }
+
+    await loadAlerts();
+  }
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    loadAlerts().catch(() => {
+      // ignore
+    });
+  }, [loadAlerts]);
 
-  const handleAction = (id: string, newStatus: 'verified' | 'rejected') => {
-    setReports(reports.map(r => r.id === id ? { ...r, status: newStatus } : r));
-  };
+  async function createShelter() {
+    setShelterCreateMsg(null);
+
+    const latitude = Number(shelterLat);
+    const longitude = Number(shelterLng);
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      setShelterCreateMsg("خطأ: يرجى إدخال خط عرض/خط طول صحيحين");
+      return;
+    }
+
+    const capacityTotal = shelterCapacityTotal ? Number(shelterCapacityTotal) : undefined;
+    const capacityUsed = shelterCapacityUsed ? Number(shelterCapacityUsed) : undefined;
+
+    const res = await fetch("/api/admin/shelters", {
+      method: "POST",
+      headers: { ...authHeader, "content-type": "application/json" },
+      body: JSON.stringify({
+        type: shelterType,
+        nameAr: shelterNameAr,
+        latitude,
+        longitude,
+        capacityTotal: Number.isFinite(capacityTotal) ? capacityTotal : undefined,
+        capacityUsed: Number.isFinite(capacityUsed) ? capacityUsed : undefined,
+        statusTextAr: shelterStatusTextAr || undefined,
+        sourceName: "يدوي (MVP)",
+        sourceUrl: shelterSourceUrl || undefined,
+      }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setShelterCreateMsg(`خطأ: ${json?.error ?? "فشل إنشاء المركز"}`);
+      return;
+    }
+
+    setShelterNameAr("");
+    setShelterLat("");
+    setShelterLng("");
+    setShelterCapacityTotal("");
+    setShelterCapacityUsed("");
+    setShelterStatusTextAr("");
+    setShelterSourceUrl("");
+    setShelterCreateMsg("تم إنشاء مركز الإيواء بنجاح");
+  }
+
+  async function reject(id: string) {
+    const res = await fetch(`/api/admin/reports/${id}/reject`, {
+      method: "POST",
+      headers: { ...authHeader, "content-type": "application/json" },
+      body: JSON.stringify({ note: "" }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json?.error ?? "Failed");
+    }
+    await loadReports();
+  }
 
   return (
-    <main className="flex-1 flex flex-col max-w-md mx-auto w-full bg-slate-900 min-h-screen text-white pb-20">
-      <header className="p-4 bg-slate-800 border-b border-slate-700 sticky top-0 z-50 flex items-center justify-between shadow-xl">
-        <div className="flex items-center gap-4">
-          <a href="/" className="p-2 hover:bg-slate-700 rounded-full">
-            <ArrowLeftIcon className="w-6 h-6 rotate-180" />
-          </a>
-          <div>
-            <h1 className="font-black text-xl flex items-center gap-2">
-              <ShieldCheckIcon className="w-6 h-6 text-emerald-500" />
-              لوحة التحكم
-            </h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">إدارة منصة إيواء</p>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-zinc-900">لوحة الإدارة</h1>
+          <p className="mt-2 text-zinc-600">إدارة البلاغات، مراكز الإيواء، والتنبيهات.</p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Sidebar - Auth & Quick Actions */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>تسجيل الدخول</CardTitle>
+                <CardDescription>أدخل كلمة مرور الإدارة للوصول</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  label="كلمة المرور"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="ADMIN_PASSWORD"
+                />
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1.5">الحالة</label>
+                  <select
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    value={status}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (isReportStatus(v)) setStatus(v);
+                    }}
+                  >
+                    <option value="pending">قيد المراجعة</option>
+                    <option value="verified">موثّق</option>
+                    <option value="rejected">مرفوض</option>
+                    <option value="archived">مؤرشف</option>
+                  </select>
+                </div>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => loadReports().catch((e) => alert(String(e)))}
+                >
+                  تحميل البلاغات
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+
+        <div className="mt-6 rounded-lg border bg-white p-4">
+          <h2 className="text-lg font-semibold">إضافة مركز إيواء</h2>
+          <p className="mt-1 text-sm text-zinc-600">
+            إدخال يدوي سريع (MVP). لاحقاً: استيراد CSV + مصادر رسمية.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">النوع</span>
+              <select
+                className="rounded-md border px-3 py-2"
+                value={shelterType}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (isShelterType(v)) setShelterType(v);
+                }}
+              >
+                <option value="government">رسمي</option>
+                <option value="ngo">جمعية / NGO</option>
+                <option value="municipality">بلدية</option>
+                <option value="civilian">مواطن</option>
+                <option value="hotel">فندق</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1 md:col-span-2">
+              <span className="text-sm text-zinc-600">الاسم</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterNameAr}
+                onChange={(e) => setShelterNameAr(e.target.value)}
+                placeholder="مثال: مدرسة رسمية - ..."
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">خط العرض (Latitude)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterLat}
+                onChange={(e) => setShelterLat(e.target.value)}
+                placeholder="33.8938"
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">خط الطول (Longitude)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterLng}
+                onChange={(e) => setShelterLng(e.target.value)}
+                placeholder="35.5018"
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">السعة الإجمالية (اختياري)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterCapacityTotal}
+                onChange={(e) => setShelterCapacityTotal(e.target.value)}
+                placeholder="350"
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">المشغول (اختياري)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterCapacityUsed}
+                onChange={(e) => setShelterCapacityUsed(e.target.value)}
+                placeholder="150"
+              />
+            </label>
+
+            <label className="grid gap-1 md:col-span-2">
+              <span className="text-sm text-zinc-600">الحالة (اختياري)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterStatusTextAr}
+                onChange={(e) => setShelterStatusTextAr(e.target.value)}
+                placeholder="مثال: متاح جزئياً"
+              />
+            </label>
+
+            <label className="grid gap-1 md:col-span-2">
+              <span className="text-sm text-zinc-600">رابط المصدر (اختياري)</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={shelterSourceUrl}
+                onChange={(e) => setShelterSourceUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </label>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+              onClick={() => createShelter().catch((e) => setShelterCreateMsg(String(e)))}
+              disabled={
+                !password ||
+                shelterNameAr.trim().length < 2 ||
+                shelterLat.trim().length === 0 ||
+                shelterLng.trim().length === 0
+              }
+            >
+              إنشاء
+            </button>
+
+            {shelterCreateMsg ? (
+              <div className="text-sm text-zinc-700">{shelterCreateMsg}</div>
+            ) : null}
           </div>
         </div>
-        <button 
-          onClick={() => setUseLebanese(!useLebanese)}
-          className="text-xs px-2 py-1 bg-slate-700 rounded-full border border-slate-600 font-black text-slate-300 uppercase"
-        >
-          {useLebanese ? "AR" : "LB"}
-        </button>
-      </header>
 
-      {/* Admin Stats */}
-      <div className="p-4 grid grid-cols-3 gap-3">
-        <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 text-center">
-          <p className="text-[8px] font-black text-slate-500 uppercase mb-1">بلاغات قيد الانتظار</p>
-          <p className="text-xl font-black text-amber-500">{reports.filter(r => r.status === 'pending').length}</p>
-        </div>
-        <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 text-center">
-          <p className="text-[8px] font-black text-slate-500 uppercase mb-1">مستخدمين نشطين</p>
-          <p className="text-xl font-black text-blue-500">١,٢٤٠</p>
-        </div>
-        <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 text-center">
-          <p className="text-[8px] font-black text-slate-500 uppercase mb-1">تهديدات مؤكدة</p>
-          <p className="text-xl font-black text-red-500">١٢</p>
-        </div>
-      </div>
-
-      {/* Verification Queue */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-black text-sm uppercase tracking-widest text-slate-400 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            طلبات التحقق
-          </h2>
-          <button className="text-[10px] font-black text-blue-400 flex items-center gap-1 uppercase">
-            <RefreshCw className="w-3 h-3" />
-            تحديث
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <AnimatePresence mode="popLayout">
-            {isLoading ? (
-              Array(3).fill(0).map((_, i) => (
-                <motion.div 
-                  key={`skeleton-${i}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="bg-slate-800 rounded-3xl p-5 border border-slate-700 space-y-4"
-                >
-                  <div className="flex justify-between">
-                    <div className="flex gap-3">
-                      <Skeleton className="w-10 h-10 rounded-xl bg-slate-700" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-3 w-20 bg-slate-700" />
-                        <Skeleton className="h-2 w-32 bg-slate-700" />
-                      </div>
-                    </div>
-                    <Skeleton className="w-8 h-8 rounded-full bg-slate-700" />
-                  </div>
-                  <Skeleton className="h-20 w-full bg-slate-700" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-12 flex-1 rounded-2xl bg-slate-700" />
-                    <Skeleton className="h-12 flex-1 rounded-2xl bg-slate-700" />
-                  </div>
-                </motion.div>
-              ))
-            ) : reports.filter(r => r.status === 'pending').map(report => (
-              <motion.div 
-                key={report.id}
-                layout
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-slate-800 rounded-3xl p-5 border border-slate-700 shadow-lg"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-xl ${report.type === 'threat' ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-500'}`}>
-                      {report.type === 'threat' ? <AlertTriangle className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <h3 className="font-black text-xs text-slate-300">{report.user}</h3>
-                      <p className="text-[8px] text-slate-500 uppercase font-bold">{report.time} - {report.location}</p>
-                    </div>
-                  </div>
-                  <button className="p-2 text-slate-500 hover:text-white transition-colors">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <p className="text-xs font-bold text-slate-100 mb-4 leading-relaxed bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                  {report.content}
-                </p>
-
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleAction(report.id, 'verified')}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl text-[10px] font-black flex items-center justify-center gap-2 transition-colors uppercase shadow-lg shadow-emerald-900/20"
-                  >
-                    <Check className="w-4 h-4" />
-                    {useLebanese ? "مزبوط" : "تأكيد"}
-                  </button>
-                  <button 
-                    onClick={() => handleAction(report.id, 'rejected')}
-                    className="flex-1 bg-red-600/10 hover:bg-red-600/20 text-red-500 py-3 rounded-2xl text-[10px] font-black flex items-center justify-center gap-2 transition-colors border border-red-500/20 uppercase"
-                  >
-                    <X className="w-4 h-4" />
-                    {useLebanese ? "كذب" : "رفض"}
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          {reports.filter(r => r.status === 'pending').length === 0 && (
-            <div className="text-center py-20 bg-slate-800/50 rounded-3xl border-2 border-dashed border-slate-700">
-              <Database className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">لا يوجد طلبات جديدة</p>
+        <div className="mt-6 rounded-lg border bg-white p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">تنبيهات الخطر</h2>
+              <p className="mt-1 text-sm text-zinc-600">
+                (MVP) إنشاء تنبيه ثم نشره. إرسال Telegram سيتم تخطيه إذا لم يتم إعداد التوكن.
+              </p>
             </div>
-          )}
+            <button
+              className="rounded-md border bg-white px-3 py-1 text-sm hover:bg-zinc-50"
+              onClick={() => loadAlerts().catch((e) => setAlertsMsg(String(e)))}
+            >
+              تحديث
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-3">
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">مستوى التنبيه</span>
+              <select
+                className="rounded-md border px-3 py-2"
+                value={alertSeverity}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (isAlertSeverity(v)) setAlertSeverity(v);
+                }}
+              >
+                <option value="urgent">عاجل</option>
+                <option value="warning">تحذير</option>
+                <option value="info">معلومة</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">عنوان التنبيه</span>
+              <input
+                className="rounded-md border px-3 py-2"
+                value={alertTitleAr}
+                onChange={(e) => setAlertTitleAr(e.target.value)}
+                placeholder="مثال: تهديد على منطقة ..."
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-sm text-zinc-600">نص التنبيه</span>
+              <textarea
+                className="min-h-28 rounded-md border px-3 py-2"
+                value={alertBodyAr}
+                onChange={(e) => setAlertBodyAr(e.target.value)}
+                placeholder="ماذا حدث؟ ماذا يجب أن يفعل الناس الآن؟"
+              />
+            </label>
+
+            <div className="flex items-center gap-3">
+              <button
+                className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+                onClick={() => createAlert().catch((e) => setAlertsMsg(String(e)))}
+                disabled={alertTitleAr.trim().length < 3 || alertBodyAr.trim().length < 3}
+              >
+                إنشاء تنبيه
+              </button>
+              {alertsMsg ? <div className="text-sm text-zinc-700">{alertsMsg}</div> : null}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3">
+            {alerts.length === 0 ? (
+              <div className="rounded-lg border bg-zinc-50 p-4 text-sm text-zinc-600">
+                لا توجد تنبيهات قيد المراجعة حالياً.
+              </div>
+            ) : (
+              alerts.map((a) => (
+                <div key={a.id} className="rounded-lg border bg-white p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm text-zinc-600">{a.severity}</div>
+                      <div className="mt-1 font-semibold">{a.titleAr}</div>
+                      <div className="mt-2 text-sm text-zinc-800">{a.bodyAr}</div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <button
+                        className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-50 disabled:opacity-50"
+                        onClick={() => publishAlert(a.id).then(() => loadAlerts())}
+                        disabled={!password}
+                      >
+                        نشر
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-3">
+          {reports.map((r) => (
+            <div key={r.id} className="rounded-lg border bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold">{r.titleAr}</div>
+                  <div className="mt-1 text-sm text-zinc-600">{r.type}</div>
+                  {r.descriptionAr ? (
+                    <div className="mt-3 text-sm text-zinc-800">{r.descriptionAr}</div>
+                  ) : null}
+                </div>
+                <div className="grid gap-2">
+                  <button
+                    className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-50"
+                    onClick={() => verify(r.id).catch((e) => alert(String(e)))}
+                  >
+                    توثيق
+                  </button>
+                  <button
+                    className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-50"
+                    onClick={() => reject(r.id).catch((e) => alert(String(e)))}
+                  >
+                    رفض
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      <footer className="mt-auto p-8 text-center">
-        <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">KiTS Admin Console v1.0</p>
-      </footer>
-    </main>
+    </div>
+    </div>
+  </div>
   );
 }

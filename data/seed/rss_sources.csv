@@ -1,0 +1,12 @@
+source_name,language,country,category,rss_url,homepage_url,notes
+"Naharnet (نهارنت)",ar,LB,news,https://www.naharnet.com/rss,https://www.naharnet.com/,Lebanese news - Arabic edition
+"Daily Star Lebanon",en,LB,news,https://www.dailystar.com.lb/RSS.ashx,https://www.dailystar.com.lb/,Lebanese news - English edition
+"Lebanon 24",ar,LB,news,https://www.lebanon24.com/rss,https://www.lebanon24.com/,Lebanese news portal
+"LBCI News",ar,LB,news,https://www.lbcgroup.tv/rss,https://www.lbcgroup.tv/,LBCI TV news
+"Al Jadeed",ar,LB,news,https://www.aljadeed.tv/rss,https://www.aljadeed.tv/,Al Jadeed TV
+"MTV Lebanon",ar,LB,news,https://www.mtv.com.lb/rss,https://www.mtv.com.lb/,MTV Lebanon news
+"National News Agency (Lebanon)",ar,LB,official,https://www.nna-leb.gov.lb/rss,https://www.nna-leb.gov.lb/,Official Lebanese state news
+"L'Orient Today",en,LB,news,https://www.lorienttoday.com/rss,https://www.lorienttoday.com/,English news from L'Orient-Le Jour
+"Al-Akhbar (Lebanon)",ar,LB,news,https://al-akhbar.com/rss,https://al-akhbar.com/,Lebanese newspaper
+"As-Safir Archive",ar,LB,news,,https://assafir.com/,Historical Lebanese newspaper - RSS may vary
+"Thawra (Lebanon)",ar,LB,news,,https://thawra.com.sy/,Syrian/Lebanese regional coverage

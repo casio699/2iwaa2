@@ -1,166 +1,208 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  PhoneCall, 
-  Ambulance, 
-  Flame, 
-  HeartHandshake, 
-  Search,
-  ExternalLink,
-  ShieldCheck as ShieldCheckIcon,
-  ArrowLeft as ArrowLeftIcon
-} from "lucide-react";
-import Skeleton from "@/components/Skeleton";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 
-interface Hotline {
+type Hotline = {
   id: string;
-  name: string;
-  nameLb: string;
-  number: string;
-  category: 'security' | 'medical' | 'fire' | 'social';
-  icon: React.ReactNode;
-  color: string;
-}
+  nameAr: string;
+  phone: string;
+  region: string;
+  category: string;
+  notes: string | null;
+  sourceUrl: string | null;
+  displayOrder: number;
+};
 
-const mockHotlines: Hotline[] = [
-  { 
-    id: "1", 
-    name: "الصليب الأحمر اللبناني", 
-    nameLb: "الصليب الأحمر", 
-    number: "140", 
-    category: 'medical', 
-    icon: <Ambulance className="w-6 h-6" />, 
-    color: "bg-red-600" 
-  },
-  { 
-    id: "2", 
-    name: "الدفاع المدني", 
-    nameLb: "الدفاع المدني", 
-    number: "125", 
-    category: 'fire', 
-    icon: <Flame className="w-6 h-6" />, 
-    color: "bg-orange-600" 
-  },
-  { 
-    id: "3", 
-    name: "قوى الأمن الداخلي", 
-    nameLb: "الدرك (قوى الأمن)", 
-    number: "112", 
-    category: 'security', 
-    icon: <ShieldCheckIcon className="w-6 h-6" />, 
-    color: "bg-blue-600" 
-  },
-  { 
-    id: "4", 
-    name: "الجيش اللبناني", 
-    nameLb: "الجيش", 
-    number: "1701", 
-    category: 'security', 
-    icon: <ShieldCheckIcon className="w-6 h-6" />, 
-    color: "bg-emerald-700" 
-  },
-  { 
-    id: "5", 
-    name: "وزارة الشؤون الاجتماعية", 
-    nameLb: "الشؤون الاجتماعية", 
-    number: "01-381234", 
-    category: 'social', 
-    icon: <HeartHandshake className="w-6 h-6" />, 
-    color: "bg-indigo-600" 
-  },
-];
+const categoryLabel: Record<string, string> = {
+  emergency: "طوارئ",
+  medical: "طبي",
+  police: "أمن",
+  military: "عسكري",
+  health: "صحة",
+  traffic: "مرور",
+  transport: "نقل",
+  customs: "جمارك",
+  tourism: "سياحة",
+  utilities: "خدمات",
+  general: "عام",
+};
+
+const categoryBadge: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
+  emergency: "danger",
+  medical: "success",
+  police: "info",
+  military: "default",
+  health: "success",
+  traffic: "warning",
+  transport: "info",
+  customs: "default",
+  tourism: "info",
+  utilities: "warning",
+  general: "default",
+};
+
+const categoryIcon: Record<string, string> = {
+  emergency: "🚨",
+  medical: "🏥",
+  police: "👮",
+  military: "🪖",
+  health: "⚕️",
+  traffic: "🚦",
+  transport: "✈️",
+  customs: "🛃",
+  tourism: "🗺️",
+  utilities: "⚡",
+  general: "📞",
+};
 
 export default function HotlinesPage() {
-  const [useLebanese, setUseLebanese] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [hotlines, setHotlines] = useState<Hotline[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/hotlines");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error ?? "Failed");
+      setHotlines(json.hotlines ?? []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    load();
   }, []);
 
-  const filteredHotlines = mockHotlines.filter(h => 
-    h.name.includes(searchTerm) || h.number.includes(searchTerm)
-  );
+  const categories = [...new Set(hotlines.map((h) => h.category))];
+  
+  const filteredHotlines = selectedCategory
+    ? hotlines.filter((h) => h.category === selectedCategory)
+    : hotlines;
 
   return (
-    <main className="flex-1 flex flex-col max-w-md mx-auto w-full bg-slate-50 min-h-screen pb-20">
-      <header className="p-4 bg-white border-b sticky top-0 z-50">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <a href="/" className="p-2 hover:bg-slate-100 rounded-full">
-              <ArrowLeftIcon className="w-6 h-6 rotate-180" />
-            </a>
-            <h1 className="font-black text-xl">{useLebanese ? "تلفونات مهمة" : "أرقام الطوارئ"}</h1>
-          </div>
-          <button 
-            onClick={() => setUseLebanese(!useLebanese)}
-            className="text-xs px-2 py-1 bg-cyan-50 rounded-full border border-cyan-100 font-black text-cyan-600 uppercase"
-          >
-            {useLebanese ? "AR" : "LB"}
-          </button>
-        </div>
-
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder={useLebanese ? "فتش ع رقم أو خدمة..." : "ابحث عن رقم أو خدمة..."}
-            className="w-full bg-slate-100 border-none rounded-2xl py-3 pr-10 pl-4 text-sm font-black focus:ring-2 focus:ring-cyan-500 outline-none"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </header>
-
-      <div className="p-4 space-y-4">
-        {isLoading ? (
-          Array(5).fill(0).map((_, i) => (
-            <div key={i} className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Skeleton className="w-14 h-14 rounded-2xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-6 w-16" />
-                </div>
-              </div>
-              <Skeleton className="w-12 h-12 rounded-2xl" />
-            </div>
-          ))
-        ) : (
-          filteredHotlines.map(hotline => (
-            <a 
-              key={hotline.id} 
-              href={`tel:${hotline.number}`}
-              className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex items-center justify-between active:scale-95 transition-transform group"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`${hotline.color} p-4 rounded-2xl text-white shadow-lg`}>
-                  {hotline.icon}
-                </div>
-                <div>
-                  <h3 className="font-black text-lg text-slate-900 mb-1 leading-tight">
-                    {useLebanese ? hotline.nameLb : hotline.name}
-                  </h3>
-                  <span className="font-black text-2xl text-slate-400 group-hover:text-cyan-600 transition-colors">{hotline.number}</span>
-                </div>
-              </div>
-              <div className="bg-slate-100 p-3 rounded-2xl group-active:bg-cyan-100 transition-colors">
-                <PhoneCall className="w-6 h-6 text-slate-400 group-hover:text-cyan-600" />
-              </div>
-            </a>
-          ))
-        )}
-
-        <div className="mt-8 p-6 bg-red-50 rounded-3xl text-center border-2 border-dashed border-red-100">
-          <p className="text-xs text-red-600 font-black uppercase tracking-widest mb-2 italic">تنبيه هام</p>
-          <p className="text-[10px] text-red-500 font-medium leading-relaxed">
-            {useLebanese ? "استخدم هالارقام بس وقت الضرورة والطارئ الحقيقي كرمال ما نعطل شغل فرق الإنقاذ." : "يرجى استخدام هذه الأرقام في حالات الطوارئ القصوى فقط لضمان سرعة الاستجابة."}
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-zinc-900">أرقام الطوارئ والاتصال</h1>
+          <p className="mt-2 text-zinc-600">
+            أرقام الطوارئ والخطوط الساخنة الهامة في لبنان
           </p>
         </div>
+
+        {/* Stats */}
+        <div className="grid gap-4 sm:grid-cols-3 mb-8">
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <div className="text-2xl font-bold text-indigo-600">{hotlines.length}</div>
+            <div className="text-sm text-zinc-500">رقم متاح</div>
+          </div>
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <div className="text-2xl font-bold text-red-600">112</div>
+            <div className="text-sm text-zinc-500">الطوارئ الموحدة</div>
+          </div>
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <div className="text-2xl font-bold text-emerald-600">{categories.length}</div>
+            <div className="text-sm text-zinc-500">فئات</div>
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <Card className="mb-8">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">تصفية حسب الفئة</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                  selectedCategory === null
+                    ? "border-indigo-600 bg-indigo-600 text-white"
+                    : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
+                }`}
+              >
+                الكل
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    selectedCategory === cat
+                      ? "border-indigo-600 bg-indigo-600 text-white"
+                      : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
+                  }`}
+                >
+                  <span>{categoryIcon[cat] || "📞"}</span>
+                  {categoryLabel[cat] || cat}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Hotlines List */}
+        <div className="grid gap-4">
+          {loading ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-zinc-600">جارٍ التحميل...</p>
+              </CardContent>
+            </Card>
+          ) : filteredHotlines.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <div className="text-4xl mb-3">📞</div>
+                <p className="text-zinc-600">لا توجد أرقام متاحة</p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredHotlines.map((h) => (
+              <Card key={h.id} className="overflow-hidden">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">{categoryIcon[h.category] || "📞"}</span>
+                        <Badge variant={categoryBadge[h.category] || "default"}>
+                          {categoryLabel[h.category] || h.category}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-xl">{h.nameAr}</CardTitle>
+                      {h.notes && (
+                        <CardDescription className="mt-1">{h.notes}</CardDescription>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <a
+                        href={`tel:${h.phone}`}
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-lg font-bold text-white shadow-md transition-all hover:bg-emerald-700 hover:shadow-lg"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {h.phone}
+                      </a>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-zinc-500">
+          <p>البيانات مأخوذة من مصادر رسمية. يُرجى التحقق من صحة الأرقام.</p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

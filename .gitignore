@@ -1,1 +1,29 @@
-node_modules
+node_modules/
+# prisma
+prisma/dev.db
+
+# data imports (do not commit raw/normalized datasets)
+data/raw/
+data/normalized/
+data/raw/**/*.pbf
+data/raw/**/*.osm
+data/raw/**/*.osm.pbf
+data/raw/**/*.geojson
+data/raw/**/*.csv
+data/normalized/**/*.geojson
+data/normalized/**/*.csv
+
+# allow curated seed data to be committed
+!data/seed/
+!data/seed/**/*.csv
+!data/seed/**/*.json
+!data/seed/**/*.md
+
+# Keep environment variables out of version control
+.env
+
+# next
+.next/
+
+# generated/prisma
+/generated/prisma
