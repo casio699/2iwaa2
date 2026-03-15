@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 
 type FinancialRate = {
   type: string;
@@ -41,7 +40,7 @@ export default function FinancialPage() {
       // Convert history array to object keyed by type
       const historyObj: Record<string, Array<{ value: number; time: string }>> = {};
       if (json.history && Array.isArray(json.history)) {
-        json.history.forEach((item: any) => {
+        json.history.forEach((item: { type: string; value: number; createdAt: string }) => {
           if (!historyObj[item.type]) {
             historyObj[item.type] = [];
           }
@@ -209,9 +208,9 @@ export default function FinancialPage() {
           <CardContent>
             {Array.isArray(history["lira_black"]) && history["lira_black"].length > 0 ? (
               <div className="h-32 flex items-end gap-1">
-                {history["lira_black"].slice(-20).map((point: any, i: number) => {
-                  const max = Math.max(...history["lira_black"].slice(-20).map((p: any) => p.value));
-                  const min = Math.min(...history["lira_black"].slice(-20).map((p: any) => p.value));
+                {history["lira_black"].slice(-20).map((point: { value: number; time: string }, i: number) => {
+                  const max = Math.max(...history["lira_black"].slice(-20).map((p: { value: number }) => p.value));
+                  const min = Math.min(...history["lira_black"].slice(-20).map((p: { value: number }) => p.value));
                   const range = max - min || 1;
                   const height = ((point.value - min) / range) * 100;
                   return (

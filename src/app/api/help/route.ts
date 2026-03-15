@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const limit = Math.min(100, parseInt(url.searchParams.get("limit") || "20"));
 
     // Build where clause
-    const where: any = {
+    const where: Record<string, unknown> = {
       status: status
     };
     
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     // Sort by urgency manually (since Prisma doesn't support CASE in orderBy)
     const urgencyOrder = { 'urgent': 1, 'high': 2, 'normal': 3, 'low': 4 };
-    const sortedPosts = posts.sort((a: any, b: any) => {
+    const sortedPosts = posts.sort((a: { urgency: string; createdAt: Date }, b: { urgency: string; createdAt: Date }) => {
       const aUrgency = urgencyOrder[a.urgency as keyof typeof urgencyOrder] || 999;
       const bUrgency = urgencyOrder[b.urgency as keyof typeof urgencyOrder] || 999;
       if (aUrgency !== bUrgency) return aUrgency - bUrgency;

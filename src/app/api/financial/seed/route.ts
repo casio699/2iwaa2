@@ -78,7 +78,7 @@ const mockFinancialData = [
 ];
 
 // POST /api/financial/seed - Seed financial data
-export async function POST(req: Request) {
+export async function POST() {
   try {
     console.log("Seeding financial data...");
     

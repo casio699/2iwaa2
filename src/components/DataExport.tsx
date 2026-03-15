@@ -10,7 +10,7 @@ export function DataExport() {
   async function exportData(type: string) {
     setLoading(type);
     try {
-      let data: any[] = [];
+      let data: unknown[] = [];
       let filename = "";
 
       switch (type) {
@@ -48,9 +48,9 @@ export function DataExport() {
 
       // Convert to CSV
       if (data.length > 0) {
-        const headers = Object.keys(data[0]).join(",");
-        const rows = data.map((row: any) => 
-          Object.values(row).map((v: any) => 
+        const headers = Object.keys(data[0] as Record<string, unknown>).join(",");
+        const rows = data.map((row) => 
+          Object.values(row as Record<string, unknown>).map((v: unknown) => 
             `"${String(v).replace(/"/g, '""')}"`
           ).join(",")
         );

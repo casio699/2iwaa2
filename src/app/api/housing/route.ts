@@ -72,7 +72,7 @@ export async function GET(req: Request) {
       `;
     }
 
-    return NextResponse.json({ housing: housing as any[] || [], count: (housing as any[])?.length || 0 });
+    return NextResponse.json({ housing: housing as unknown[] || [], count: (housing as unknown[])?.length || 0 });
   } catch (error) {
     console.error("Housing API error:", error);
     return NextResponse.json({ housing: [], count: 0, error: "Failed to fetch housing" }, { status: 500 });

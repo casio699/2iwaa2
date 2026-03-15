@@ -106,7 +106,7 @@ export async function GET(req: Request) {
     const offset = parseInt(url.searchParams.get("offset") || "0");
 
     // Build where clause
-    const where: any = {
+    const where: Record<string, unknown> = {
       isVerified: true
     };
     
@@ -115,11 +115,11 @@ export async function GET(req: Request) {
     if (breaking === "true") where.isBreaking = true;
 
     // Try to get articles from database first
-    let articles: any[] = [];
+    let articles: unknown[] = [];
     let sources: Array<{ sourceName: string; count: number }> = [];
     
     try {
-      const queryResult = await prisma.$queryRaw<any[]>`
+      const queryResult = await prisma.$queryRaw<unknown[]>`
         SELECT * FROM "NewsArticle"
         WHERE "isVerified" = true
         ${category ? `AND category = ${category}` : ''}
@@ -174,7 +174,7 @@ export async function GET(req: Request) {
       articles, 
       sources, 
       count: articles.length,
-      source: articles.length > 0 && mockNewsArticles.some((mockArticle) => articles.find((art: any) => art.id === mockArticle.id)) ? "Mock data" : "Database"
+      source: articles.length > 0 && mockNewsArticles.some((mockArticle) => articles.find((art: unknown) => (art as { id: string }).id === mockArticle.id)) ? "Mock data" : "Database"
     });
   } catch (error) {
     console.error("News API error:", error);

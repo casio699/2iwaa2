@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     sinceDate.setDate(sinceDate.getDate() - days);
 
     // Build where clause
-    const where: any = {
+    const where: Record<string, unknown> = {
       status: status,
       reportedAt: {
         gte: sinceDate
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ 
       threats, 
-      stats: stats.map((s: any) => ({ type: s.type, count: s._count.type })), 
+      stats: stats.map((s: { type: string; _count: { type: number } }) => ({ type: s.type, count: s._count.type })), 
       count: threats.length 
     });
   } catch (error) {

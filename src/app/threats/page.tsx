@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -49,7 +49,7 @@ export default function ThreatsPage() {
   const [days, setDays] = useState(7);
   const [threatModalOpen, setThreatModalOpen] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/threats?days=${days}`);
@@ -61,11 +61,11 @@ export default function ThreatsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [days]);
 
   useEffect(() => {
     load();
-  }, [days]);
+  }, [days, load]);
 
   const filtered = filter === "all"
     ? threats

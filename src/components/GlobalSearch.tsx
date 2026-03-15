@@ -47,8 +47,8 @@ export function GlobalSearch() {
       // Process shelters
       if (shelters?.shelters) {
         shelters.shelters
-          .filter((s: any) => s.nameAr?.includes(q) || s.addressAr?.includes(q))
-          .forEach((s: any) => {
+          .filter((s: { nameAr?: string; addressAr?: string }) => s.nameAr?.includes(q) || s.addressAr?.includes(q))
+          .forEach((s: { id: string; nameAr: string; addressAr: string }) => {
             allResults.push({
               id: s.id,
               type: "shelter",
@@ -62,8 +62,8 @@ export function GlobalSearch() {
       // Process housing
       if (housing?.housing) {
         housing.housing
-          .filter((h: any) => h.hostName?.includes(q) || h.addressAr?.includes(q))
-          .forEach((h: any) => {
+          .filter((h: { hostName?: string; addressAr?: string }) => h.hostName?.includes(q) || h.addressAr?.includes(q))
+          .forEach((h: { id: string; hostName: string; addressAr: string }) => {
             allResults.push({
               id: h.id,
               type: "housing",
@@ -77,9 +77,9 @@ export function GlobalSearch() {
       // Process threats
       if (threats?.threats) {
         threats.threats
-          .filter((t: any) => t.areaNameAr?.includes(q) || t.descriptionAr?.includes(q))
+          .filter((t: { areaNameAr?: string; descriptionAr?: string }) => t.areaNameAr?.includes(q) || t.descriptionAr?.includes(q))
           .slice(0, 5)
-          .forEach((t: any) => {
+          .forEach((t: { id: string; areaNameAr: string; type: string }) => {
             allResults.push({
               id: t.id,
               type: "threat",
@@ -93,9 +93,9 @@ export function GlobalSearch() {
       // Process help
       if (help?.posts) {
         help.posts
-          .filter((p: any) => p.titleAr?.includes(q) || p.descriptionAr?.includes(q))
+          .filter((p: { titleAr?: string; descriptionAr?: string }) => p.titleAr?.includes(q) || p.descriptionAr?.includes(q))
           .slice(0, 5)
-          .forEach((p: any) => {
+          .forEach((p: { id: string; titleAr: string; type: string }) => {
             allResults.push({
               id: p.id,
               type: "help",

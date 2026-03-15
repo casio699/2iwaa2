@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // Global socket instance
 let io: SocketIOServer | null = null;
 
-export async function GET(req: Request) {
+export async function GET() {
   if (io) {
     return NextResponse.json({ status: "Socket server running" });
   }
@@ -80,6 +80,7 @@ export async function POST(req: Request) {
 }
 
 // Initialize socket server (call this from server.ts or layout)
+// Note: This function is exported for external use but not used as a route handler
 function initSocketServer(server: NetServer) {
   if (io) return io;
 
