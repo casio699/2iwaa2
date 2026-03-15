@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { LocationInput } from "@/components/ui/LocationInput";
 
 interface ThreatFormModalProps {
   isOpen: boolean;
@@ -25,6 +26,15 @@ export function ThreatFormModal({ isOpen, onClose, onSuccess }: ThreatFormModalP
     casualties: "",
     damageLevel: "unknown",
   });
+
+  const handleLocationChange = (location: { latitude: number; longitude: number; address?: string }) => {
+    setFormData({
+      ...formData,
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString(),
+      areaNameAr: location.address || formData.areaNameAr,
+    });
+  };
 
   const threatTypes = [
     { key: "rocket", label: "صاروخ", icon: "🚀" },
@@ -137,16 +147,18 @@ export function ThreatFormModal({ isOpen, onClose, onSuccess }: ThreatFormModalP
             </div>
           </div>
 
-          {/* Area */}
+          {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">المنطقة/الموقع *</label>
-            <input
-              type="text"
-              required
-              value={formData.areaNameAr}
-              onChange={(e) => setFormData({ ...formData, areaNameAr: e.target.value })}
-              placeholder="مثال: الضاحية الجنوبية - حارثية"
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+            <label className="block text-sm font-medium text-zinc-700 mb-1">الموقع *</label>
+            <LocationInput
+              value={formData.latitude && formData.longitude ? {
+                latitude: parseFloat(formData.latitude),
+                longitude: parseFloat(formData.longitude),
+                address: formData.areaNameAr
+              } : undefined}
+              onChange={handleLocationChange}
+              placeholder="اختر موقع التهديد من الخريطة"
+              showAddressInput={true}
             />
           </div>
 
@@ -163,32 +175,6 @@ export function ThreatFormModal({ isOpen, onClose, onSuccess }: ThreatFormModalP
                 <option key={g} value={g}>{g}</option>
               ))}
             </select>
-          </div>
-
-          {/* Location Coordinates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">خط العرض</label>
-              <input
-                type="number"
-                step="any"
-                value={formData.latitude}
-                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                placeholder="33.8938"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">خط الطول</label>
-              <input
-                type="number"
-                step="any"
-                value={formData.longitude}
-                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                placeholder="35.5018"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
-              />
-            </div>
           </div>
 
           {/* Description */}

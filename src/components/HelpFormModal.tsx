@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { LocationInput } from "@/components/ui/LocationInput";
 
 interface HelpFormModalProps {
   isOpen: boolean;
@@ -25,8 +26,19 @@ export function HelpFormModal({ isOpen, onClose, onSuccess, defaultType = "offer
     contactPhone: "",
     contactWhatsApp: "",
     location: "",
+    latitude: "",
+    longitude: "",
     urgency: "normal",
   });
+
+  const handleLocationChange = (location: { latitude: number; longitude: number; address?: string }) => {
+    setFormData({
+      ...formData,
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString(),
+      location: location.address || formData.location,
+    });
+  };
 
   const categories = [
     { key: "shelter", label: "سكن", icon: "🏠" },
@@ -76,6 +88,8 @@ export function HelpFormModal({ isOpen, onClose, onSuccess, defaultType = "offer
           contactPhone: "",
           contactWhatsApp: "",
           location: "",
+          latitude: "",
+          longitude: "",
           urgency: "normal",
         });
       }, 1500);
@@ -206,12 +220,15 @@ export function HelpFormModal({ isOpen, onClose, onSuccess, defaultType = "offer
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-1">المنطقة</label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="مثال: بيروت - الضاحية الجنوبية"
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+            <LocationInput
+              value={formData.latitude && formData.longitude ? {
+                latitude: parseFloat(formData.latitude),
+                longitude: parseFloat(formData.longitude),
+                address: formData.location
+              } : undefined}
+              onChange={handleLocationChange}
+              placeholder="اختر الموقع من الخريطة أو أدخل العنوان"
+              showAddressInput={true}
             />
           </div>
 
