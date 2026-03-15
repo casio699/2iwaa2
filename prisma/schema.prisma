@@ -175,7 +175,7 @@ model Hotline {
   updatedAt   DateTime @updatedAt
 
   nameAr      String
-  phone       String
+  phone       String   @unique
   region      String   @default("Lebanon")
   category    String   // emergency, medical, police, etc.
   notes       String?

@@ -27,8 +27,8 @@ export function Navbar() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-indigo-600">2iwaa2</span>
-            <span className="text-sm text-zinc-500">منصة إيواء</span>
+            <span className="text-xl font-bold text-indigo-600">Al-Menassa</span>
+            <span className="text-sm text-zinc-500">المنصة</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-1">

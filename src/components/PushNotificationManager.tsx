@@ -51,7 +51,7 @@ export function PushNotificationManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fingerprint: localStorage.getItem("2iwaa2-fingerprint") || "unknown",
+          fingerprint: localStorage.getItem("al-menassa-fingerprint") || "unknown",
           pushSubscription: newSubscription.toJSON(),
           pushEnabled: true,
         }),

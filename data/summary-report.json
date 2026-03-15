@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-03-15T20:30:01.873Z",
+  "summary": {
+    "shelters": 2,
+    "hotlines": 11,
+    "news": 0,
+    "threats": 0,
+    "financialRates": 8
+  },
+  "financialBreakdown": [
+    {
+      "type": "fuel_95"
+    },
+    {
+      "type": "gold_21k"
+    },
+    {
+      "type": "fuel_diesel"
+    },
+    {
+      "type": "fuel_98"
+    },
+    {
+      "type": "lira_black"
+    },
+    {
+      "type": "lira_sayrafa"
+    },
+    {
+      "type": "lira_official"
+    },
+    {
+      "type": "gold_24k"
+    }
+  ],
+  "lastUpdated": "2026-03-15T20:30:01.873Z"
+}

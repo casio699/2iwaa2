@@ -1,4 +1,4 @@
-const CACHE_NAME = '2iwaa2-v1';
+const CACHE_NAME = 'al-menassa-v1';
 const STATIC_ASSETS = [
   '/',
   '/shelters',
@@ -101,7 +101,7 @@ self.addEventListener('push', (event) => {
   try {
     const data = event.data.json();
     const options = {
-      body: data.body || 'تنبيه جديد من 2iwaa2',
+      body: data.body || 'تنبيه جديد من Al-Menassa',
       icon: '/icon-192x192.png',
       badge: '/badge-72x72.png',
       tag: data.tag || 'default',
@@ -110,13 +110,13 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-      self.registration.showNotification(data.title || '2iwaa2', options)
+      self.registration.showNotification(data.title || 'Al-Menassa', options)
     );
   } catch (error) {
     console.log('Push notification error:', error);
     // Show a basic notification even if data parsing fails
     event.waitUntil(
-      self.registration.showNotification('2iwaa2', {
+      self.registration.showNotification('Al-Menassa', {
         body: 'تنبيه جديد',
         tag: 'fallback'
       })

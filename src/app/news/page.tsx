@@ -80,7 +80,7 @@ export default function NewsPage() {
       <div className="mx-auto max-w-5xl px-4 py-10">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-zinc-900">أخبار المنصة - منسّا</h1>
+          <h1 className="text-3xl font-bold text-zinc-900">أخبار المنصة</h1>
           <p className="mt-2 text-zinc-600">
             جمع الأخبار من مصادر متعددة للحصول على الصورة الكاملة
           </p>
@@ -154,7 +154,7 @@ export default function NewsPage() {
                       <Badge variant="danger">🔴 عاجل</Badge>
                     )}
                     <Badge variant={categoryBadge[article.category] || "default"}>
-                      {categoryLabels[article.category] || article.category}
+                      {categoryLabels[article.category] || article.category || "عام"}
                     </Badge>
                     <span className="text-sm text-zinc-500">
                       {sourceIcons[article.sourceType] || "📰"} {article.sourceName}
@@ -162,7 +162,7 @@ export default function NewsPage() {
                   </div>
                   <CardTitle className="text-xl leading-relaxed">
                     <a
-                      href={article.originalUrl}
+                      href={article.originalUrl || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-indigo-600 transition-colors"
@@ -176,7 +176,7 @@ export default function NewsPage() {
                 </CardHeader>
                 <CardContent>
                   {/* Coverage Analysis */}
-                  {article.coverage.length > 0 && (
+                  {article.coverage && article.coverage.length > 0 && (
                     <div className="mb-3">
                       <span className="text-xs text-zinc-500">غطّى الخبر:</span>
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -193,7 +193,7 @@ export default function NewsPage() {
                   )}
 
                   {/* Tags */}
-                  {article.tags.length > 0 && (
+                  {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {article.tags.map((tag) => (
                         <span
@@ -208,7 +208,7 @@ export default function NewsPage() {
 
                   <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
                     <span>
-                      {new Date(article.publishedAt).toLocaleDateString("ar-LB", {
+                      {new Date(article.publishedAt || new Date()).toLocaleDateString("ar-LB", {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
@@ -216,7 +216,7 @@ export default function NewsPage() {
                         minute: "2-digit",
                       })}
                     </span>
-                    <span>{article.viewCount} مشاهدة</span>
+                    <span>{article.viewCount || 0} مشاهدة</span>
                   </div>
                 </CardContent>
               </Card>

@@ -34,10 +34,10 @@ export default function SubscriptionsPage() {
 
   // Generate or retrieve fingerprint on mount
   useEffect(() => {
-    let fp = localStorage.getItem("2iwaa2-fingerprint");
+    let fp = localStorage.getItem("al-menassa-fingerprint");
     if (!fp) {
       fp = "fp_" + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem("2iwaa2-fingerprint", fp);
+      localStorage.setItem("al-menassa-fingerprint", fp);
     }
     setFingerprint(fp);
     loadSubscription(fp);

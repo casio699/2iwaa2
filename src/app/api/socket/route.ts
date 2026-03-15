@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextResponse } from 'next/server';
 import { Server as NetServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { prisma } from "@/lib/prisma";

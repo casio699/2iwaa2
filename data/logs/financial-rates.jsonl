@@ -1,0 +1,1 @@
+{"timestamp":"2026-03-15T20:29:52.423Z","pipeline":"financial-rates","success":false,"recordsImported":0,"errors":["Failed to scrape LiraRate: Error: self-signed certificate in certificate chain"],"provenance":{"sourceName":"Financial Aggregators","sourceUrl":"multiple","sourceRetrievedAt":"2026-03-15T20:29:37.931Z"}}

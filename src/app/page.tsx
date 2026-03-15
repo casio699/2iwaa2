@@ -53,7 +53,7 @@ const features = [
   },
   {
     href: "/news",
-    title: "أخبار المنصة - منسّا",
+    title: "أخبار المنصة",
     description: "جمع الأخبار من مصادر متعددة (Ground News style) - مقارنة التغطية والمصادر",
     badge: "متعدد",
     badgeVariant: "info" as const,
@@ -100,10 +100,10 @@ export default function HomePage() {
       <div className="mx-auto max-w-6xl px-4 pt-16 pb-12">
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-            <span className="text-indigo-600">2iwaa2</span> - منصة إيواء
+            <span className="text-indigo-600">  Al-Menassa  </span>   المنصة  
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-600">
-            منصة لمساعدة النازحين في لبنان: مراكز إيواء، مساكن، تنبيهات، وبلاغات.
+            منصة من لبنان لكل لبنان : 
             مجتمعنا أولويتنا.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">

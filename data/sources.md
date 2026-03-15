@@ -1,4 +1,4 @@
-# 2iwaa2 Data Sources Catalog (Lebanon)
+# Al-Menassa Data Sources Catalog (Lebanon)
 
 This document catalogs external datasets and feeds that can be imported to support current and future features.
 
@@ -71,7 +71,7 @@ This document catalogs external datasets and feeds that can be imported to suppo
 - **Sources**:
   - **Lebanese Civil Defense**: https://www.civildefense.gov.lb/ - Emergency: 125, Unified: 112
   - **Lebanese Red Cross**: https://www.redcross.org.lb/ - Ambulance: 140, Emergency: 112
-  - **Ministry of Public Health**: http://www.moph.gov.lb/ - Hotline: 1214
+  - **Ministry of Public Health**: https://www.moph.gov.lb/ - Hotline: 1214
   - **General Security**: https://www.general-security.gov.lb/ - 117
   - **Internal Security Forces**: https://www.isf.gov.lb/ - Emergency: 112, Operations: 01-429701
   - **Customs**: https://www.customs.gov.lb/ - 1735
@@ -169,7 +169,7 @@ This document catalogs external datasets and feeds that can be imported to suppo
 - **Use**: official and black market exchange rates (USD/LBP)
 - **Sources**:
   - **Banque du Liban (Central Bank)**: https://www.bdl.gov.lb/ - Official rates
-  - **Lira Rate (aggregator)**: https://lirarate.com/ - Black market rates
+  - **Lira Rate (aggregator)**: https://lirarate.org/ - Black market rates
   - **SAYRAFA platform**: https://sayrafa.com/ - Market rates via app
   - **Adde Dollar**: https://addeddollar.com/ - Parallel market aggregator
 - **License**: varies (public data for rates, proprietary for some aggregators)
@@ -181,12 +181,40 @@ This document catalogs external datasets and feeds that can be imported to suppo
 
 ### 6.2 Fuel prices (Lebanon)
 - **Use**: gasoline/diesel prices (subsidized vs market)
-- **Source**: Ministry of Energy and Water announcements
+- **Source**: Ministry of Energy and Water (https://www.energyandwater.gov.lb/) announcements
 - **License**: public information
 - **Refresh**: weekly or as announced
 - **Import approach**:
   - Monitor official announcements
   - Track price history
+
+### 6.3 Gold prices (International)
+- **Use**: gold prices for investment and economic indicators
+- **Source**: World Gold Council (https://www.gold.org/) - International gold prices
+- **License**: public market data
+- **Refresh**: hourly during market hours
+- **Import approach**:
+  - Scrape real-time gold prices
+  - Convert to USD per gram for consistency
+  - Store both 24k and 21k prices (calculated)
+
+---
+
+## 7) Flight Information
+
+### 7.1 Beirut Rafic Hariri International Airport
+- **Use**: real-time flight arrivals and departures
+- **Source**: Beirut Airport official website (https://www.beirutairport.gov.lb/)
+- **License**: public information
+- **Refresh**: every 5 minutes for real-time updates
+- **Import approach**:
+  - Scrape flight information from airport website
+  - Track arrivals, departures, delays, and gate information
+  - Note: May require authentication or API integration in production
+- **Alternative sources**:
+  - FlightAware API
+  - FlightRadar24 API
+  - Amadeus API (commercial)
 
 ---
 

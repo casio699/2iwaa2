@@ -1,0 +1,197 @@
+name: Data Pipeline CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'data/**'
+      - 'src/lib/data-**'
+      - 'prisma/schema.prisma'
+  schedule:
+    # Run data pipelines every 2 hours
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      pipeline:
+        description: 'Specific pipeline to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - rss-news
+          - financial-rates
+          - reliefweb
+          - osm-import
+          - hotlines-seed
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+      pipeline: ${{ steps.check.outputs.pipeline }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check if should run
+      id: check
+      run: |
+        if [ "${{ github.event_name }}" = "schedule" ]; then
+          echo "should-run=true" >> $GITHUB_OUTPUT
+          echo "pipeline=all" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "should-run=true" >> $GITHUB_OUTPUT
+          echo "pipeline=${{ github.event.inputs.pipeline }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" = "push" ]; then
+          # Check if data-related files changed
+          if git diff --name-only HEAD~1 HEAD | grep -E "(data/|src/lib/data-|prisma/schema.prisma)"; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "pipeline=all" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "should-run=false" >> $GITHUB_OUTPUT
+        fi
+
+  database-setup:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.should-run == 'true'
+    
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_al-menassa
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install system dependencies for OSM
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y osm2pgsql postgis
+        
+    - name: Setup environment
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_al-menassa" >> .env
+        echo "NEXT_PUBLIC_APP_URL=http://localhost:3000" >> .env
+        
+    - name: Generate Prisma client
+      run: npx prisma generate
+      
+    - name: Setup database
+      run: |
+        npx prisma db push
+        npx prisma db seed
+
+  run-pipelines:
+    runs-on: ubuntu-latest
+    needs: [setup, database-setup]
+    if: needs.setup.outputs.should-run == 'true'
+    
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_al-menassa
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y osm2pgsql postgis
+        
+    - name: Setup environment
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_al-menassa" >> .env
+        echo "NEXT_PUBLIC_APP_URL=http://localhost:3000" >> .env
+        
+    - name: Generate Prisma client
+      run: npx prisma generate
+      
+    - name: Run data pipelines
+      run: |
+        if [ "${{ needs.setup.outputs.pipeline }}" = "all" ]; then
+          npm run pipeline:all
+        else
+          npm run pipeline:single ${{ needs.setup.outputs.pipeline }}
+        fi
+        
+    - name: Upload pipeline logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pipeline-logs
+        path: data/logs/
+        retention-days: 30
+        
+    - name: Generate data report
+      run: |
+        npm run data:report > data-report.json
+        
+    - name: Upload data report
+      uses: actions/upload-artifact@v4
+      with:
+        name: data-report
+        path: data-report.json
+        retention-days: 90
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup, run-pipelines]
+    if: needs.setup.outputs.should-run == 'true' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production..."
+        # Add your deployment commands here
+        # For example: docker build, push, and deploy

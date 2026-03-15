@@ -1,30 +1,37 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextRequest, NextResponse } from "next/server";
+import { dataSync } from "@/lib/data-sync";
 import { promises as fs } from "fs";
 import { parse } from "csv-parse/sync";
 import path from "path";
+import { prisma } from "@/lib/prisma";
 
-// GET /api/hotlines - List all active hotlines
-export async function GET() {
-  const hotlines = await prisma.$queryRaw<
-    Array<{
-      id: string;
-      nameAr: string;
-      phone: string;
-      region: string;
-      category: string;
-      notes: string | null;
-      sourceUrl: string | null;
-      displayOrder: number;
-    }>
-  >`
-    SELECT id, "nameAr", phone, region, category, notes, "sourceUrl", "displayOrder"
-    FROM "Hotline"
-    WHERE "isActive" = true
-    ORDER BY "displayOrder" ASC, category ASC, "nameAr" ASC
-  `;
+// GET /api/hotlines - List all active hotlines with caching
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const limit = parseInt(searchParams.get('limit') || '50');
+  const offset = parseInt(searchParams.get('offset') || '0');
 
-  return NextResponse.json({ hotlines });
+  try {
+    // Use our new data sync system with caching
+    const hotlines = await dataSync.getFreshData('hotlines', { limit, offset }) as any[];
+    
+    return NextResponse.json({ 
+      success: true,
+      hotlines,
+      pagination: {
+        limit,
+        offset,
+        total: hotlines.length
+      }
+    });
+  } catch (error) {
+    console.error('Hotlines API error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch hotlines', success: false },
+      { status: 500 }
+    );
+  }
 }
 
 // POST /api/admin/hotlines/import - Import from seed file (admin only)

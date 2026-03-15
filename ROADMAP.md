@@ -1,6 +1,6 @@
-# 2iwaa2 - منصة إيواء (2iwa2) — End-to-End Plan (A→Z)
+# Al-Menassa - المنصة — End-to-End Plan (A→Z)
 
-This is the **single source of truth** for building and operating **2iwaa2**, a Lebanese crisis/displacement assistance platform.
+This is the **single source of truth** for building and operating **Al-Menassa**, a Lebanese crisis/displacement assistance platform.
 
 If you are reading this as a new developer:
 - Start with **Local runbook** (below)

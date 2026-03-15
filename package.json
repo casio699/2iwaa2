@@ -1,12 +1,19 @@
 {
-  "name": "2iwaa2_v2.0",
+  "name": "al-menassa",
   "version": "1.0.0",
   "description": "",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pipeline:all": "tsx src/scripts/run-all-pipelines.ts",
+    "pipeline:single": "tsx src/scripts/run-single-pipeline.ts",
+    "data:report": "tsx src/scripts/generate-data-report.ts",
+    "data:seed": "tsx src/scripts/seed-all-data.ts",
+    "db:setup": "npx prisma db push && npx prisma db seed",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate dev"
   },
   "keywords": [],
   "author": "",

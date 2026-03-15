@@ -233,7 +233,7 @@ export default function FinancialPage() {
 
         {/* Sources */}
         <div className="mt-8 text-center text-sm text-zinc-500">
-          <p>المصادر: مصرف لبنان، منصة صيرفة، LiraRate، وزارة الطاقة</p>
+          <p>المصادر: مصرف لبنان المركزي، منصة صيرفة، LiraRate.org، وزارة الطاقة والمياه، المجلس العالمي للذهب</p>
           <p className="mt-1">⚠️ الأسعار غير الرسمية للسوق السوداء هي تقديرات تقريبية</p>
         </div>
       </div>
